@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Desafio Botânica Pro</title>
+    <style>
+        :root {
+            --bg: #064e3b; 
+            --card: #065f46;
+            --accent: #facc15; 
+            --green-light: #4ade80;
+            --soil: #78350f;
+        }
+
+        body { 
+            background-color: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
+            min-height: 100vh;
+            touch-action: none;
+        }
+
+        .container { 
+            background-color: var(--card); 
+            padding: 15px; 
+            border-radius: 20px; 
+            width: 90%; 
+            max-width: 380px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header { 
+            text-align: center; 
+            background: linear-gradient(135deg, #059669, #15803d); 
+            padding: 12px; 
+            border-radius: 14px; 
+            margin-bottom: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .header h1 { font-size: 1.1rem; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+        #grid { 
+            display: grid; 
+            grid-template-columns: repeat(12, 1fr); 
+            gap: 2px; 
+            background-color: var(--soil); 
+            padding: 5px; 
+            border-radius: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .letter-cell { 
+            aspect-ratio: 1/1;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background-color: var(--card); 
+            font-weight: 800; 
+            font-size: 13px; 
+            border-radius: 3px;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .selected { background-color: var(--accent) !important; color: var(--soil); }
+        .found { background-color: var(--green-light) !important; color: var(--bg); animation: grow 0.3s ease; }
+
+        @keyframes grow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .word-list { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 5px; 
+            margin-top: 15px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .word-item { 
+            font-size: 9px; 
+            background: rgba(0,0,0,0.2); 
+            padding: 5px; 
+            border-radius: 5px; 
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .word-found { 
+            background: var(--green-light) !important; 
+            color: var(--bg); 
+            text-decoration: line-through; 
+            font-weight: bold;
+            opacity: 0.8; 
+        }
+
+        .btn-reload {
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--soil);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="stats-bar">
+        <span>⏱️ <span id="timer">00:00</span></span>
+        <span style="color: var(--accent);">🌿 PONTOS: <span id="score">0</span></span>
+    </div>
+    
+    <div class="header"><h1>Reino das Plantas</h1></div>
+    
+    <div id="grid"></div>
+
+    <ul class="word-list" id="word-list"></ul>
+    
+    <button class="btn-reload" onclick="location.reload()">NOVO JOGO</button>
+</div>
+
+<script>
+    // LISTA COM ACENTUAÇÃO CORRETA
+    const displayWords = ["BRIÓFITA", "PTERIDÓFITA", "GIMNOSPERMA", "ANGIOSPERMA", "FOTOSSÍNTESE", "CLOROFILA", "ESTÔMATO", "XILEMA"];
+    
+    // Função para remover acentos para o Grid
+    function normalizar(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    }
+
+    const wordsGrid = displayWords.map(normalizar);
+    const size = 12;
+    let gridData = Array(size).fill().map(() => Array(size).fill(''));
+    let selectedCells = [];
+    let isSelecting = false;
+    let foundCount = 0;
+    let score = 0;
+    let seconds = 0;
+
+    setInterval(() => {
+        if (foundCount < displayWords.length) {
+            seconds++;
+            let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            let s = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
+    }, 1000);
+
+    function getCell(e) {
+        let el;
+        if (e.touches) {
+            el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        } else {
+            el = e.target;
+        }
+        return el && el.classList.contains('letter-cell') ? el : null;
+    }
+
+    function start(e) {
+        let el = getCell(e);
+        if (el) {
+            isSelecting = true;
+            selectedCells = [el];
+            el.classList.add('selected');
+        }
+    }
+
+    function move(e) {
+        if (!isSelecting) return;
+        let el = getCell(e);
+        if (el && !selectedCells.includes(el)) {
+            const first = selectedCells[0];
+            if (el.dataset.r === first.dataset.r || el.dataset.c === first.dataset.c) {
+                selectedCells.push(el);
+                el.classList.add('selected');
+            }
+        }
+    }
+
+    function end() {
+        if (!isSelecting) return;
+        isSelecting = false;
+        const currentSelection = selectedCells.map(d => d.textContent).join('');
+        const revSelection = currentSelection.split('').reverse().join('');
+        
+        // Verifica se a seleção bate com alguma palavra normalizada
+        const foundIndex = wordsGrid.findIndex(w => w === currentSelection || w === revSelection);
+
+        if (foundIndex !== -1) {
+            const wordEl = document.getElementById("word-" + foundIndex);
+
+            if (!wordEl.classList.contains('word-found')) {
+                foundCount++;
+                score += 150;
+                document.getElementById('score').innerText = score;
+                selectedCells.forEach(d => { d.classList.remove('selected'); d.classList.add('found'); });
+                wordEl.classList.add('word-found');
+
+                if (foundCount === displayWords.length) {
+                    setTimeout(() => {
+                        alert("🌻 INCRÍVEL! 🌻\nVocê dominou a Botânica!\n\nPontos: " + score);
+                    }, 250);
+                }
+            }
+        } else {
+            selectedCells.forEach(d => d.classList.remove('selected'));
+        }
+        selectedCells = [];
+    }
+
+    window.onload = () => {
+        const gridEl = document.getElementById('grid');
+        const listEl = document.getElementById('word-list');
+
+        // Cria a lista visual com os acentos corretos
+        displayWords.forEach((word, index) => {
+            const li = document.createElement('li');
+            li.className = 'word-item';
+            li.id = "word-" + index;
+            li.innerText = word;
+            listEl.appendChild(li);
+        });
+
+        // Tenta encaixar as palavras normalizadas (sem acento)
+        wordsGrid.forEach(word => {
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 150) {
+                const dir = Math.random() > 0.5 ? 'H' : 'V';
+                const r = Math.floor(Math.random() * (size - (dir === 'V' ? word.length : 0)));
+                const c = Math.floor(Math.random() * (size - (dir === 'H' ? word.length : 0)));
+                let can = true;
+                for (let i = 0; i < word.length; i++) {
+                    const nr = dir === 'V' ? r + i : r;
+                    const nc = dir === 'H' ? c + i : c;
+                    if (gridData[nr][nc] !== '' && gridData[nr][nc] !== word[i]) { can = false; break; }
+                }
+                if (can) {
+                    for (let i = 0; i < word.length; i++) {
+                        gridData[dir === 'V' ? r + i : r][dir === 'H' ? c + i : c] = word[i];
+                    }
+                    placed = true;
+                }
+                attempts++;
+            }
+        });
+
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (gridData[r][c] === '') gridData[r][c] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
+                const div = document.createElement('div');
+                div.className = 'letter-cell';
+                div.innerText = gridData[r][c];
+                div.dataset.r = r;
+                div.dataset.c = c;
+                gridEl.appendChild(div);
+            }
+        }
+
+        gridEl.addEventListener('mousedown', start);
+        gridEl.addEventListener('mouseover', move);
+        window.addEventListener('mouseup', end);
+        gridEl.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }, {passive: false});
+        gridEl.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, {passive: false});
+        gridEl.addEventListener('touchend', end);
+    };
+</script>
+</body>
+</html>

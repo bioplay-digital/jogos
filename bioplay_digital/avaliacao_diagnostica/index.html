@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioPlay Digital - Avaliação</title>
+    <style>
+        :root {
+            --primary: #27ae60;
+            --secondary: #2ecc71;
+            --bg: #f0f4f0;
+            --text: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        h1 { color: var(--primary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        p.subtitle { margin-bottom: 40px; opacity: 0.8; font-weight: 600; font-size: 1.2rem; color: #7f8c8d; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .card {
+            background-color: transparent;
+            width: 100%;
+            height: 230px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+            box-sizing: border-box;
+            border-radius: 15px;
+            border: 2.5px solid var(--primary);
+        }
+        .card-front {
+            background-color: white;
+            color: var(--text);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .card-back {
+            background-color: var(--primary);
+            color: white;
+            transform: rotateY(180deg);
+            flex-direction: column;
+        }
+        .card-back h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 5px;
+        }
+        .card-back p {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .counter {
+            font-size: 0.75rem;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: var(--primary);
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>BioPlay Digital 🌿</h1>
+    <p class="subtitle">Avaliação Diagnóstica</p>
+
+    <div class="cards-grid" id="grid"></div>
+
+    <script>
+        const qaPairs = [
+            { q: "O que significa biologia?", a: "Estudo da Vida", d: "Do grego 'Bio' (vida) e 'Logos' (estudo/ciência)." },
+            { q: "Quais são os principais componentes químicos dos seres vivos?", a: "CHONPS", d: "Carbono, Hidrogênio, Oxigênio, Nitrogênio, Fósforo e Enxofre." },
+            { q: "O que é a fotossíntese?", a: "Produção de Alimento", d: "Processo que converte energia solar em energia química (glicose)." },
+            { q: "Como se estrutura a hierarquia biológica?", a: "Níveis de Organização", d: "Átomos > Moléculas > Organelas > Células > Tecidos > Órgãos > <strong>Sistemas</strong> > Organismo." },
+            { q: "O que são as células e como são estruturadas?", a: "Unidade da Vida", d: "Basicamente formadas por membrana plasmática, citoplasma e material genético." },
+            { q: "Como acontece a transmissão de características?", a: "Hereditariedade", d: "Através do DNA e dos genes passados de geração em geração." },
+            { q: "Quais as funções da água nos organismos?", a: "Solvente e Transporte", d: "Essencial para o metabolismo, transporte de nutrientes e controle térmico." },
+            { q: "Diferença entre unicelular e pluricelular?", a: "Quantidade de Células", d: "Unicelulares: uma célula (ex: bactérias). Pluricelulares: várias (ex: animais)." },
+            { q: "O que é ciência e para que serve?", a: "Conhecimento Científico", d: "Serve para explicar a realidade através de um método de investigação <strong>rigorosa</strong>." }
+        ];
+
+        const grid = document.getElementById('grid');
+
+        qaPairs.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => card.classList.toggle('flipped');
+
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span class="counter">QUESTÃO ${index + 1}</span>
+                        ${item.q}
+                    </div>
+                    <div class="card-back">
+                        <h3>${item.a}</h3>
+                        <p>${item.d}</p>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>

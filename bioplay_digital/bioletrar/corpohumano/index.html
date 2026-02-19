@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioletrar - Sistemas e Tecidos</title>
+    <style>
+        :root { --primary: #c0392b; --secondary: #e74c3c; --bg: #fdf2f2; --accent: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .game-container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(192, 57, 43, 0.1); text-align: center; max-width: 450px; width: 90%; border-top: 8px solid var(--primary); }
+        h1 { color: var(--primary); margin: 0 0 5px 0; font-size: 2rem; }
+        .theme-tag { color: var(--secondary); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 15px; display: block; letter-spacing: 1px; }
+        .letters-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; }
+        .letter-node { width: 45px; height: 45px; background: white; border: 2px solid var(--primary); border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: var(--primary); transition: 0.2s; }
+        .letter-node:hover { background: var(--primary); color: white; }
+        input { width: 100%; padding: 12px; font-size: 1.6rem; text-align: center; border: none; border-bottom: 3px solid #ddd; margin-bottom: 15px; text-transform: uppercase; outline: none; background: transparent; color: var(--accent); }
+        .controls { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+        button.main-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        button.clear-btn { background: #95a5a6; color: white; border: none; border-radius: 10px; cursor: pointer; }
+        #msg { margin-top: 20px; font-weight: bold; min-height: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>bio<span>letrar</span></h1>
+        <span class="theme-tag">Fisiologia e Anatomia Humana</span>
+        <p id="hint-text" style="font-size: 1rem; color: #555; line-height: 1.4;">Carregando...</p>
+        <input type="text" id="user-input" readonly>
+        <div class="letters-container" id="letters-grid"></div>
+        <div class="controls">
+            <button class="main-btn" onclick="checkWord()">ENVIAR RESPOSTA</button>
+            <button class="clear-btn" onclick="clearInput()">APAGAR</button>
+        </div>
+        <div id="msg"></div>
+    </div>
+
+    <script>
+        const wordBank = [
+            { word: "NÉFRON", hint: "A unidade funcional dos rins responsável pela filtração do sangue." },
+            { word: "ALVÉOLO", hint: "Estrutura pulmonar onde ocorrem as trocas gasosas (hematose)." },
+            { word: "SARCÔMERO", hint: "Unidade contrátil da fibra muscular estriada." },
+            { word: "EPITÉLIO", hint: "Tecido de revestimento que forma a pele e as mucosas." },
+            { word: "HEMOGLOBINA", hint: "Proteína dos glóbulos vermelhos que transporta oxigênio." },
+            { word: "PERISTALTISMO", hint: "Movimentos involuntários que empurram o alimento pelo tubo digestório." },
+            { word: "SINAPSE", hint: "Região de comunicação entre dois neurônios." },
+            { word: "MIOCÁRDIO", hint: "O tecido muscular específico que forma as paredes do coração." }
+        ];
+
+        let currentIndex = 0;
+        const inputEl = document.getElementById('user-input');
+        const hintEl = document.getElementById('hint-text');
+        const gridEl = document.getElementById('letters-grid');
+        const msgEl = document.getElementById('msg');
+
+        function init() {
+            if(currentIndex >= wordBank.length) {
+                document.querySelector('.game-container').innerHTML = "<h2>🧠 Fisiologia Dominada!</h2><p>Você completou o módulo de Sistemas Humanos.</p>";
+                return;
+            }
+            const item = wordBank[currentIndex];
+            hintEl.innerText = item.hint;
+            inputEl.value = "";
+            msgEl.innerText = "";
+            gridEl.innerHTML = "";
+            
+            let letters = item.word.toUpperCase().split("");
+            letters.sort(() => Math.random() - 0.5);
+            
+            letters.forEach(l => {
+                const btn = document.createElement('button');
+                btn.className = 'letter-node';
+                btn.innerText = l;
+                btn.onclick = () => { inputEl.value += l; msgEl.innerText = ""; };
+                gridEl.appendChild(btn);
+            });
+        }
+
+        function checkWord() {
+            if(inputEl.value.toUpperCase() === wordBank[currentIndex].word.toUpperCase()) {
+                msgEl.style.color = "#27ae60"; msgEl.innerText = "⭐ Excelente! Próximo...";
+                setTimeout(() => { currentIndex++; init(); }, 1200);
+            } else {
+                msgEl.style.color = "#e74c3c"; msgEl.innerText = "❌ Tente novamente!";
+                inputEl.value = "";
+            }
+        }
+        function clearInput() { inputEl.value = ""; msgEl.innerText = ""; }
+        init();
+    </script>
+</body>
+</html>
